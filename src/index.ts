@@ -8,14 +8,21 @@ import { discoverArticles } from "./analyzer/blog-discovery.js";
 import { planArticles } from "./planner/article-planner.js";
 import { generateArticles } from "./generator/article-writer.js";
 import { getConfig } from "./utils/config.js";
-import { version } from "../package.json" with { type: "json" };
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf-8")
+);
 
 const program = new Command();
 
 program
   .name("blog-builder")
   .description("AI-powered blog content strategy and generation tool")
-  .version(version);
+  .version(pkg.version);
 
 program
   .command("analyze <url>")

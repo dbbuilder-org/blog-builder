@@ -2,6 +2,7 @@
   "name": "blog-builder",
   "version": "0.1.0",
   "description": "AI-powered blog content strategy and generation tool for Medium and LinkedIn",
+  "type": "module",
   "main": "dist/index.js",
   "bin": {
     "blog-builder": "dist/index.js"

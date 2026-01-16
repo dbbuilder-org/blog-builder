@@ -1,4 +1,5 @@
 import path from "path";
+import crypto from "crypto";
 import type {
   Config,
   SiteAnalysis,
@@ -10,7 +11,6 @@ import type {
 import { generateJsonWithClaude } from "../utils/claude.js";
 import { getSiteOutputDir } from "../utils/config.js";
 import { writeJson, readJson } from "../utils/storage.js";
-import { v4 as uuidv4 } from "crypto";
 
 const PLANNING_SYSTEM_PROMPT = `You are an expert content strategist specializing in B2B and technology content marketing. Your task is to analyze a brand's existing content and recommend new articles to fill gaps and expand their reach.
 
@@ -224,6 +224,5 @@ ${a.outline.map((s) => `1. ${s}`).join("\n")}
 }
 
 function generateId(): string {
-  // Simple ID generation without external dependency
-  return `article-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  return `article-${crypto.randomUUID().slice(0, 8)}`;
 }
