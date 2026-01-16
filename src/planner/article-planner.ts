@@ -10,7 +10,12 @@ import type {
 } from "../types.js";
 import { generateJsonWithClaude } from "../utils/claude.js";
 import { getSiteOutputDir } from "../utils/config.js";
-import { writeJson, readJson } from "../utils/storage.js";
+import { writeJson, readJson, slugify } from "../utils/storage.js";
+
+// Available gradient presets for article theming
+const GRADIENT_OPTIONS = ["blue", "purple", "green", "orange", "teal", "slate", "rose", "amber", "indigo", "cyan"];
+const PATTERN_OPTIONS = ["dots", "grid", "waves", "circuit"];
+const CATEGORY_OPTIONS = ["Engineering", "Strategy", "Leadership", "Compliance", "Product", "Operations", "Security"];
 
 const PLANNING_SYSTEM_PROMPT = `You are an expert content strategist specializing in B2B and technology content marketing. Your task is to analyze a brand's existing content and recommend new articles to fill gaps and expand their reach.
 
@@ -27,14 +32,20 @@ Given the site analysis and existing articles, generate a strategic content plan
   ],
   "articles": [
     {
+      "slug": "url-friendly-slug",
       "title": "Compelling article title",
+      "subtitle": "A brief subtitle that expands on the title (one sentence)",
       "topic": "Primary topic",
+      "category": "${CATEGORY_OPTIONS.join("|")}",
       "angle": "Unique angle/perspective",
       "targetAudience": "Specific audience segment",
-      "keywords": ["keyword1", "keyword2", "keyword3"],
-      "outline": ["Section 1", "Section 2", "Section 3", "Section 4"],
+      "keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
+      "outline": ["Section 1", "Section 2", "Section 3", "Section 4", "Section 5"],
       "targetLength": 1500,
-      "platform": "medium|linkedin|both"
+      "platform": "both",
+      "gradient": "${GRADIENT_OPTIONS.join("|")}",
+      "pattern": "${PATTERN_OPTIONS.join("|")}",
+      "readTime": "8 min read"
     }
   ]
 }
@@ -42,9 +53,22 @@ Given the site analysis and existing articles, generate a strategic content plan
 Guidelines:
 - Prioritize topics that align with the brand's value propositions
 - Create titles that are compelling and SEO-friendly
+- Include a punchy subtitle that hooks the reader
+- Generate a URL-friendly slug (lowercase, hyphens, no special characters)
+- Assign a category that best fits the content
 - Mix content types: how-to guides, thought leadership, case study angles
-- LinkedIn articles should be shorter (800-1200 words), Medium can be longer (1500-3000)
-- Include a mix of top-of-funnel (awareness) and bottom-of-funnel (decision) content`;
+- Articles should be 1500-2500 words for comprehensive coverage
+- Always set platform to "both" (Medium and LinkedIn)
+- Assign visual theming: pick a gradient color and pattern that matches the topic mood:
+  - blue/indigo: technical, engineering topics
+  - green/teal: growth, strategy, success topics
+  - purple: leadership, vision topics
+  - orange/amber: warnings, mistakes, learning topics
+  - slate: compliance, security topics
+  - rose/cyan: creative, design, UX topics
+- Calculate readTime based on targetLength (roughly 200 words per minute)
+- Include 5 keywords for SEO
+- Create 5-section outlines that include Mermaid diagram opportunities`;
 
 export async function planArticles(
   url: string,
@@ -83,13 +107,20 @@ export async function planArticles(
     { maxTokens: 8192, temperature: 0.8 }
   );
 
-  // Add IDs and status to articles
+  // Add IDs and status to articles, ensure all required fields
   const articles: ArticleBrief[] = planData.articles
     .slice(0, config.articleCount)
-    .map((article) => ({
+    .map((article, index) => ({
       ...article,
       id: generateId(),
       status: "planned" as const,
+      // Ensure defaults for any missing fields
+      slug: article.slug || slugify(article.title),
+      subtitle: article.subtitle || article.angle,
+      category: article.category || "Engineering",
+      gradient: article.gradient || GRADIENT_OPTIONS[index % GRADIENT_OPTIONS.length],
+      pattern: (article.pattern || PATTERN_OPTIONS[index % PATTERN_OPTIONS.length]) as "dots" | "grid" | "waves" | "circuit",
+      readTime: article.readTime || `${Math.ceil(article.targetLength / 200)} min read`,
     }));
 
   // Save plan
@@ -199,12 +230,17 @@ ${g.suggestedAngles.map((a) => `- ${a}`).join("\n")}
 
 ${articles.map((a, i) => `### ${i + 1}. ${a.title}
 
+> ${a.subtitle}
+
+- **Slug:** ${a.slug}
+- **Category:** ${a.category}
 - **Topic:** ${a.topic}
 - **Angle:** ${a.angle}
 - **Target Audience:** ${a.targetAudience}
 - **Platform:** ${a.platform}
-- **Target Length:** ${a.targetLength} words
+- **Target Length:** ${a.targetLength} words (~${a.readTime})
 - **Keywords:** ${a.keywords.join(", ")}
+- **Visual Theme:** ${a.gradient} gradient, ${a.pattern} pattern
 
 **Outline:**
 ${a.outline.map((s) => `1. ${s}`).join("\n")}

@@ -24,6 +24,9 @@ Blog Builder automates the content creation pipeline:
 - **Content Planning**: Generates a strategic content calendar with article briefs
 - **Article Generation**: Creates full-length, publication-ready articles in your brand voice
 - **Multi-Platform Output**: Formats for Medium, LinkedIn, and standard Markdown
+- **Mermaid Diagrams**: Auto-generates flowcharts, graphs, and visualizations in articles
+- **Visual Theming**: Assigns gradient colors and patterns for hero images
+- **Next.js Integration**: Generates `blog.ts` metadata file for direct use in Next.js projects
 
 ## Installation
 
@@ -60,14 +63,18 @@ npx blog-builder run https://example.com
 ```
 ~/.blog-builder/
 └── example.com/
-    ├── blog-plan.md          # Site analysis and content strategy
+    ├── blog-plan.md           # Site analysis and content strategy
+    ├── site-analysis.json     # Structured brand/site data
     ├── existing-articles.json # Discovered blog content
     ├── article-plan.json      # Planned articles with briefs
     └── output/
+        ├── blog.ts            # Next.js-compatible metadata
+        ├── README.md          # Integration instructions
         ├── article-1/
-        │   ├── article.md     # Standard markdown
-        │   ├── medium.md      # Medium-optimized format
-        │   └── linkedin.md    # LinkedIn-optimized format
+        │   ├── article.md     # Full article with Mermaid diagrams
+        │   ├── medium.md      # Medium-optimized with hero image spec
+        │   ├── linkedin.md    # LinkedIn-optimized (<3000 chars)
+        │   └── metadata.json  # Article metadata
         └── article-2/
             └── ...
 ```
@@ -168,18 +175,70 @@ The generated blog plan includes:
 ## Platform-Specific Formatting
 
 ### Medium
+- Hero image specification with gradient and pattern
 - Proper heading hierarchy (H1 for title, H2 for sections)
+- Mermaid diagrams as code blocks (renderable via mermaid.live)
 - Pull quotes for key insights
-- Code blocks with syntax highlighting
-- Image placeholders with alt text
 - Tag suggestions based on content
+- Recommended dimensions: 1200x630px
 
 ### LinkedIn
 - Attention-grabbing hook in first line
-- Shorter paragraphs (2-3 sentences)
-- Strategic use of line breaks
-- Hashtag recommendations
-- Call-to-action suggestions
+- Under 3000 characters (critical for engagement)
+- Shorter paragraphs (1-2 sentences)
+- No Mermaid diagrams (not supported)
+- Strategic use of bullet points
+- 3-5 relevant hashtags
+- Question or CTA to encourage engagement
+
+### Mermaid Diagrams
+
+Articles automatically include 3-6 Mermaid diagrams for:
+- **flowchart**: Processes and decision trees
+- **graph**: Relationships and comparisons
+- **gantt**: Timelines and schedules
+- **subgraph**: Grouped concepts
+
+Example output:
+```mermaid
+flowchart TB
+    subgraph Process["Development Process"]
+        A[Plan] --> B[Build]
+        B --> C[Test]
+        C --> D[Deploy]
+    end
+```
+
+## Visual Theming
+
+Each article is assigned a visual theme for consistent hero images:
+
+| Gradient | Use For |
+|----------|---------|
+| blue/indigo | Technical, engineering topics |
+| green/teal | Growth, strategy, success |
+| purple | Leadership, vision |
+| orange/amber | Warnings, mistakes, learning |
+| slate | Compliance, security |
+| rose/cyan | Creative, design, UX |
+
+Patterns: `dots`, `grid`, `waves`, `circuit`
+
+## Next.js Integration
+
+The generated `blog.ts` file can be copied directly to your Next.js project:
+
+```bash
+cp output/blog.ts your-nextjs-project/lib/blog.ts
+```
+
+It exports:
+- `BlogPost` interface with full metadata
+- `blogPosts` array of all articles
+- `getBlogPost(slug)` - find single post
+- `getAllBlogSlugs()` - for static paths
+- `getBlogPostsByCategory(category)` - filter by category
+- `getAllCategories()` - unique categories
 
 ## Architecture
 
